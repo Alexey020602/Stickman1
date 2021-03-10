@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags: []
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - 
+  - Water
+  - UI
+  - 
+  - 
+  - StickmanBehind
+  - StickmanForward
+  - World
+  - Things
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Background
+    uniqueID: 2852441357
+    locked: 0
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: StickmanForward
+    uniqueID: 778572821
+    locked: 0
+  - name: StickmanBehind
+    uniqueID: 2496903261
+    locked: 0
+  - name: UI
+    uniqueID: 462714107
+    locked: 0
