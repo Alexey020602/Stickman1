@@ -11,17 +11,20 @@ public class Levelmanager : MonoBehaviour
     public StartArrow Arrow;
     public float MinForseToPush;
     public float ForseToPush;
+    public CametaFollow  PropMode;
 
     private bool CanChooseDirection = true;
     private Camera _mainCamera;
     private Vector3 _arrowDirectionToPush;
     private GameManager _gamemanager;
+    private SpriteRenderer[] propSprites; 
 
     private void Start()
     {
         //Arrow = Instantiate(ArrowPrefab, ArrowAppearence);
         _mainCamera = Camera.main;
         _gamemanager = GameManager.Instance;
+        propSprites = GetComponentsInChildren<SpriteRenderer>();
     }
 
     private void Update()
@@ -39,8 +42,26 @@ public class Levelmanager : MonoBehaviour
             Destroy(Arrow.gameObject);
         }
         //можно удалить
+        PropAppear();
     }
 
+    private void PropAppear()
+    {
+        if (PropMode.isPropModeOff)
+        {
+            foreach(SpriteRenderer SR in propSprites)
+            {
+                SR.color = new Color(SR.color.r, SR.color.g, SR.color.b, 0);
+            }
+        }
+        else
+        {
+            foreach (SpriteRenderer SR in propSprites)
+            {
+                SR.color = new Color(SR.color.r, SR.color.g, SR.color.b, 0.5f);
+            }
+        }
+    }
     void OnMouseDown()
     {
         if (CanChooseDirection)

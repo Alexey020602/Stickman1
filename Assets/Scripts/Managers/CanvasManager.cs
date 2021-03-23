@@ -12,7 +12,7 @@ public class CanvasManager : SimpleSingleton<CanvasManager>
 
     [Header("Player")]
     public Image StaminaBar;
-    public PlayerManager Player;
+    private PlayerManager Player;
 
     [Header("Menu")]
     public GameObject _RestartMenu;
@@ -35,6 +35,10 @@ public class CanvasManager : SimpleSingleton<CanvasManager>
     public void PauseMenu(bool active)
     {
         _PauseMenu.SetActive(active);
+    }
+    private void Awake()
+    {
+        Player = PlayerManager.Instance;
     }
     private void Update()
     {
