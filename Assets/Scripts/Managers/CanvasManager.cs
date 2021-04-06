@@ -17,7 +17,7 @@ public class CanvasManager : SimpleSingleton<CanvasManager>
     [Header("Menu")]
     public GameObject _RestartMenu;
     public GameObject _PauseMenu;
-
+    public GameObject _ObstaclesMenu;
 
     public void UpdateCurrentCounter(float Counter)
     {

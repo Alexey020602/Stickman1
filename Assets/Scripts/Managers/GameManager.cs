@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -18,6 +19,19 @@ public class GameManager : SimpleSingleton<GameManager>
     public bool FreezeOnStart = true;
     private CanvasManager Canvas;
 
+    public GameObject ObstacleMenuButton;
+    public Transform Obstacles;
+    public Transform Props;
+    private string nameOfScene;
+    [System.Serializable]
+    public class ObstacleInventory
+    {
+        public string ObstacleName;
+        public GameObject ObstaclePrefab;
+        //[HideInInspector]
+        //public GameObject Obstacle;
+    }
+    public List<ObstacleInventory> ListOfObstacles=new List<ObstacleInventory>();
 
     public float CurrentCounter;
     public static float TheBestCounter;
@@ -35,9 +49,34 @@ public class GameManager : SimpleSingleton<GameManager>
         Canvas.UpdateTheBestCounter(TheBestCounter);
         WaitForStartGame();
         StartButtons();
-
+        nameOfScene = SceneManager.GetActiveScene().name;
+        SetObstacles();
+        
 
     }
+    public void SetObstacles()
+    {
+
+        for (int i = 0; i < Props.childCount; i++)
+        {
+            Transform PositionOfObstacle = Props.GetChild(i);
+            string name = PlayerPrefs.GetString($"{nameOfScene}type{i}");
+            foreach (ObstacleInventory obstacle in ListOfObstacles)
+            {
+                if (obstacle.ObstacleName == name)
+                {
+                    OpenPropsMenu installationPoint = PositionOfObstacle.gameObject.GetComponent<OpenPropsMenu>();
+                    if (installationPoint.IsUsed())
+                    {
+                        Destroy(installationPoint.AttachedObstacle());
+                    }
+                    installationPoint.AttachMountedObstacle(Instantiate<GameObject>(obstacle.ObstaclePrefab, PositionOfObstacle.position + Vector3.forward, obstacle.ObstaclePrefab.transform.rotation, Obstacles), name);
+                    installationPoint.Used();
+                }
+            }
+        }
+    }
+
     void StartButtons()
     {
 
@@ -76,9 +115,9 @@ public class GameManager : SimpleSingleton<GameManager>
         {
             _player.SetImpulse(Force, -direction);
         }
-
+        ObstacleMenuButton.SetActive(false);
       //  Debug.LogWarning(direction);
-  
+        
         Time.timeScale = 1f;
     }
     //мой кодик гг
@@ -143,5 +182,17 @@ public class GameManager : SimpleSingleton<GameManager>
         SceneManager.LoadScene(Level);
     }
     // =========================================состояния игры=========================================
-
+    private void OnApplicationQuit()
+    {
+        
+        for (int i=0; i<Props.childCount; i++)
+        {
+            
+            Transform obstacle = Props.GetChild(i);
+            OpenPropsMenu obstaclePlace = obstacle.GetComponent<OpenPropsMenu>();
+            PlayerPrefs.SetString($"{nameOfScene}type{i}", obstaclePlace.TypeAttachedObstacle());
+        }
+        PlayerPrefs.Save();
+    }
+    
 }

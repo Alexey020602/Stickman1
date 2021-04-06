@@ -81,7 +81,7 @@ public class CametaFollow : MonoBehaviour
         for (float i = 0f; i < 1; i += Time.unscaledDeltaTime /(MovingTime))
         {
             _cameraSize.orthographicSize = Mathf.Lerp(_cameraSize.orthographicSize, size, EasingFunctions.SmoothSquared(i));
-            transform.position = Vector3.Lerp(new Vector3(transform.position.x, transform.position.y, transform.position.z), new Vector3(Place.position.x, Place.position.y, transform.position.z), EasingFunctions.SmoothSquared(i));
+            transform.position = Vector3.Lerp(transform.position, new Vector3(Place.position.x, Place.position.y, transform.position.z), EasingFunctions.SmoothSquared(i));
             yield return null;
         }
         transform.position = new Vector3(Place.position.x, Place.position.y, transform.position.z);

@@ -6,15 +6,18 @@ using UnityEngine.UI;
 public class ObstanclesMode : MonoBehaviour
 {
     public GameObject Props;
-    public GameObject PlayButtonsAndIndicators;
     public CametaFollow Camera;
 
+    private GameObject obstaclesMenu;
+    private GameObject PlayButtonsAndIndicators;
     private Text text;
     private bool isModeOn=false;
     // Start is called before the first frame update
     void Start()
     {
-        text= transform.GetChild(0).gameObject.GetComponent<Text>();
+        PlayButtonsAndIndicators = CanvasManager.Instance.transform.Find("Play buttons and indicators").gameObject;//Кэш
+        obstaclesMenu = CanvasManager.Instance.transform.Find("ОbstaclesMenu").gameObject;
+        text = transform.GetChild(0).gameObject.GetComponent<Text>();
     }
     public void ClickOnButtonPropMenu()
     {
@@ -24,6 +27,7 @@ public class ObstanclesMode : MonoBehaviour
             isModeOn = false;
             PlayButtonsAndIndicators.SetActive(true);
             Props.SetActive(false);
+            obstaclesMenu.SetActive(false);
         }
         else
         {
@@ -36,8 +40,4 @@ public class ObstanclesMode : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

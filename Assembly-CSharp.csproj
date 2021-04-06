@@ -79,6 +79,7 @@
     <Compile Include="Assets\Scripts\Managers\MenuManager.cs" />
     <Compile Include="Assets\Scripts\Managers\PlayerManager.cs" />
     <Compile Include="Assets\Scripts\MobileButton.cs" />
+    <Compile Include="Assets\Scripts\ObstaclePlacement.cs" />
     <Compile Include="Assets\Scripts\ObstanclesMode.cs" />
     <Compile Include="Assets\Scripts\OnButton.cs" />
     <Compile Include="Assets\Scripts\OpenPropsMenu.cs" />
@@ -87,6 +88,8 @@
     <Compile Include="Assets\Scripts\PlayerCling.cs" />
     <Compile Include="Assets\Scripts\PlayerControl.cs" />
     <Compile Include="Assets\Scripts\PoolableObject.cs" />
+    <Compile Include="Assets\Scripts\RemovingObstacles.cs" />
+    <Compile Include="Assets\Scripts\SetActiveAllProps.cs" />
     <Compile Include="Assets\Scripts\Smoke.cs" />
     <Compile Include="Assets\Scripts\Spawner.cs" />
     <Compile Include="Assets\Scripts\StartButton.cs" />
