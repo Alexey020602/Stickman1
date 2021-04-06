@@ -2180,7 +2180,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 1
   m_Sprite: {fileID: 21300000, guid: 0138cb2f6dc729846a3f2396e92e34e3, type: 3}
-  m_Color: {r: 0.5849056, g: 0.5655927, b: 0.5655927, a: 0.5019608}
+  m_Color: {r: 0.5019608, g: 0.5019608, b: 0.5019608, a: 0.5019608}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -6226,7 +6226,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 1
   m_Sprite: {fileID: 21300000, guid: 0138cb2f6dc729846a3f2396e92e34e3, type: 3}
-  m_Color: {r: 0.5849056, g: 0.5655927, b: 0.5655927, a: 0.5019608}
+  m_Color: {r: 0.5019608, g: 0.5019608, b: 0.5019608, a: 0.5019608}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -9561,6 +9561,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   PositionOfObstacles: {fileID: 0}
   Obstacles: {fileID: 1379002576}
+  SceneToAddObstacles:
+    m_Handle: 0
   ListOfObstacles:
   - ObstacleName: Cube
     ObstaclePrefab: {fileID: 2812142267222121234, guid: 61371f81bb8fd3a40a7845047b8aa187,

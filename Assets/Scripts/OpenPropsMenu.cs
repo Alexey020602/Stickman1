@@ -47,13 +47,15 @@ public class OpenPropsMenu : MonoBehaviour
         if (menu.activeSelf) return;
         menu.SetActive(true);
         menu.GetComponent<ObstaclePlacement>().SetNewSpawnPlace(transform);//CanvasManager
-        for(int i=0; i<props.childCount;i++)
-        {
-            Transform currentProp = props.GetChild(i);
-            if (currentProp!=transform)
-            {
-                currentProp.gameObject.SetActive(false);
-            }
-        }
+        Color color = gameObject.GetComponent<Renderer>().material.color=new Color(1f, 0.5f, 0.5f, 0.5f);
+        
+        //for(int i=0; i<props.childCount;i++)
+        //{
+        //    Transform currentProp = props.GetChild(i);
+        //    if (currentProp!=transform)
+        //    {
+        //        currentProp.gameObject.SetActive(false);
+        //    }
+        //}
     }
 }

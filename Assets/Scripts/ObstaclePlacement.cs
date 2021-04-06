@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 using UnityEngine;
 
 
@@ -7,6 +8,7 @@ public class ObstaclePlacement : MonoBehaviour
 {
     public Transform PositionOfObstacles;
     public Transform Obstacles;
+    public Scene SceneToAddObstacles;
     [System.Serializable]
     public class ObstacleInventory
     {
@@ -26,6 +28,7 @@ public class ObstaclePlacement : MonoBehaviour
     void Start()
     {
         _obstaclesMenu = CanvasManager.Instance._ObstaclesMenu;
+        //SceneToAddObstacles = Singleton<SceneManager>.Instance;
     }
 
     // Update is called once per frame
@@ -41,17 +44,12 @@ public class ObstaclePlacement : MonoBehaviour
                     Destroy(installationPoint.AttachedObstacle());
                 }
                 _obstaclesMenu.SetActive(false);
-                installationPoint.AttachMountedObstacle(Instantiate<GameObject>(obstacle.ObstaclePrefab, PositionOfObstacles.position+Vector3.forward, obstacle.ObstaclePrefab.transform.rotation, Obstacles), name);
+                GameObject gO = Instantiate<GameObject>(obstacle.ObstaclePrefab, PositionOfObstacles.position + Vector3.forward, obstacle.ObstaclePrefab.transform.rotation, Obstacles);
+                gO.GetComponent<SceneName>().sceneName = SceneManager.GetActiveScene().name; 
+                installationPoint.AttachMountedObstacle(gO, name);
+                SceneManager.MoveGameObjectToScene(Instantiate(gO), SceneToAddObstacles);
                 installationPoint.Used();
-                Transform props = PositionOfObstacles.parent;
-                for (int i = 0; i < props.childCount; i++)
-                {
-                    Transform currentProp = props.GetChild(i);
-                    if (currentProp != PositionOfObstacles)
-                    {
-                        currentProp.gameObject.SetActive(true);
-                    }
-                }
+                PositionOfObstacles.gameObject.GetComponent<Renderer>().material.color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
             }
         }
     }
