@@ -22,7 +22,7 @@ public class BodyParts
 public class ClassPlayerState
 {
     public string StateName;
-    public List<ClassPartState> Part= new List<ClassPartState>();
+    public List<ClassPartState> Part = new List<ClassPartState>();
 }
 
 [System.Serializable]
@@ -36,13 +36,15 @@ public class ClassPartState
 }
 
 
-public class PlayerManager : MonoBehaviour
+public class PlayerManager : SimpleSingleton<PlayerManager>
 {
     // inspector
     [Header("Body part")]
     public float DefaultSpeed = 100;
     public float DefaultForce = 5;
     public bool UseDefaultParameters = true;
+
+    public float MinForce = 20;
 
     public string[] BodyPartsString = { "Head", "Body0", "Body1", "Body2", "LegForward1", "LegForward0", "LegBehind0", "LegBehind1", "HandBehind0", "HandBehind1", "HandForward0", "HandForward1" };
 
@@ -62,20 +64,22 @@ public class PlayerManager : MonoBehaviour
     [Header("Debug")]
     public string CurrentState;
 
-    [Header ("Cling parameters")]
+    [Header("Cling parameters")]
     private bool _iscatch = false;
     public float stamina = 1;
-    public float hover_time;
-    public float recovery_time;
+    public float HoverSpeed;
+    public float RecoverySpeed;
+    public float DelayUntilRecoveryStarts;
+    private float delayUntilRecoveryStartsCounter;
 
     // managers
-    private GameManager _gamemanager;
-    private CanvasManager _canvasManager;
     private CountDownTimer _countDownTimer;
 
     // others
     private Rigidbody2D Head; // обьект для определения малой скорости, чтобы фиксировать конец игры
     private bool LowVelocityActive = true; // помогает нормально работать таймеру конца игры
+
+
 
     public enum BodyPartsName
     {
@@ -96,39 +100,27 @@ public class PlayerManager : MonoBehaviour
 
     private void Start()
     {
-        _countDownTimer = FindObjectOfType<CountDownTimer>();
-        _canvasManager = FindObjectOfType<CanvasManager>();
-        _gamemanager = FindObjectOfType<GameManager>();
+        _countDownTimer = CanvasManager.Instance.CountDownTimer;
 
         //при старте записываем обьект head, чтобы мы его могли использовать в дальнейшем для проверки конца игры
         Head = Body[1].Rigidbody;
-
     }
-
-    private void Update()
+    private void CatchControl()
     {
         if (Input.GetKey(KeyCode.Space))
         {
-            if (_iscatch)
-            {
-                if (stamina >= 0.001)
-                    Catch();
-                else
-                    UnCatch();
-            }
-            else
-            {
-                if (stamina >= 0.2)
-                    Catch();
-                else
-                    UnCatch();
-            }
+            if (stamina > 0.001f) Catch();
+            else UnCatch();
         }
         else
         {
             UnCatch();
         }
+    }
+    private void Update()
+    {
 
+        CatchControl();
 
         if (Input.GetKey("w"))
         {
@@ -179,24 +171,38 @@ public class PlayerManager : MonoBehaviour
             LeftHand.UnCatch();
             RightHand.UnCatch();
         }
-        if (LeftHand.catched||RightHand.catched)
+
+        if (delayUntilRecoveryStartsCounter > 0f) delayUntilRecoveryStartsCounter -= Time.fixedDeltaTime;
+
+        if (LeftHand.catched || RightHand.catched)
         {
-            if(LeftHand.catched && RightHand.catched)
-            { 
-                stamina -=  Time.fixedTime /hover_time;
-            
+            if (LeftHand.catched && RightHand.catched)
+            {
+                stamina -= Time.fixedDeltaTime * HoverSpeed;
+
             }
             else
             {
-                stamina -= 2*Time.fixedTime / hover_time;
+                stamina -= 2f * Time.fixedDeltaTime * HoverSpeed;
             }
-            if (stamina < 0) stamina = 0f;
+            if (stamina < 0f)
+            {
+                stamina = 0f;
+                delayUntilRecoveryStartsCounter = DelayUntilRecoveryStarts;
+            }
         }
         else
         {
-            stamina += Time.fixedTime / recovery_time;
-            if (stamina > 1) stamina = 1f;
+            if (delayUntilRecoveryStartsCounter <= 0f)
+                if (stamina < 1f)
+                {
+                    stamina += Time.fixedDeltaTime * RecoverySpeed;
+                    if (stamina > 1f) stamina = 1f;
+                }
+
         }
+
+
     }
 
     // устанавливаем состояние персонажа
@@ -227,7 +233,7 @@ public class PlayerManager : MonoBehaviour
                     }
                 }
             }
-        }   
+        }
     }
 
     public void DisabledControlOfBodyPart()
@@ -246,11 +252,13 @@ public class PlayerManager : MonoBehaviour
     }
 
     // при запуске игры кидаем персонажа
-    public void SetImpulse(float Force)
+    //мой кодик Нина
+    public void SetImpulse(float Force, Vector3 direction)
     {
         Body[(int)BodyPartsName.Head].StickmanBody.StopGetDamage(0.1f);
-        Body[(int)BodyPartsName.Head].Rigidbody.AddForce(new Vector2(-200 * Force - 20, 0), ForceMode2D.Impulse);
+        Body[(int)BodyPartsName.Head].Rigidbody.AddForce(direction * Force, ForceMode2D.Impulse);
     }
+    //мой кодик гг
 
     // проверяем скорость персонажа, чтобы закончить игру
     public void CheckLowVelocity()
@@ -294,7 +302,7 @@ public class PlayerManager : MonoBehaviour
             });
             // проверяем у новосозданного обьекта в списке, включен ли у него данные компоненты
             if (!Body[i].StickmanBody.gameObject.GetComponent<HingeJoint2D>().enabled ||
-                 Body[i].StickmanAngle == null  )
+                 Body[i].StickmanAngle == null)
             {
                 //если нет, то делаем неактивным этот элемент в списке
                 Body[i].active = false;
@@ -320,11 +328,11 @@ public class PlayerManager : MonoBehaviour
                         angle = 0, // по стандарту выставляем угол 0
                         force = DefaultForce, // выставляем силу по стандарту
                         speed = DefaultSpeed // выставляем скорость по стандарту
-                    }) ;
+                    });
                 }
             }
         }
-        
+
     }
 
     public void Catch()

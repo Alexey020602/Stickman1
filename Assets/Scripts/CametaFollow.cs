@@ -15,6 +15,7 @@ public class CametaFollow : MonoBehaviour
     private Camera _cameraSize;
     private float offsetCameraSize;
     public bool isPropModeOff { get; set; } = true;
+    public bool isCameraMoving = false;
 
     [Header("MotionData")]
     //public Levelmanager IsGameBegin;
@@ -56,6 +57,7 @@ public class CametaFollow : MonoBehaviour
     }
     public void MovingCamera()
     {
+        if (isCameraMoving) return; 
         if (isPropModeOff)
         {
             MovingCameraToPropsMode();
@@ -78,6 +80,7 @@ public class CametaFollow : MonoBehaviour
     }
     private IEnumerator StepsToPoint(Transform Place, float size)
     {
+        isCameraMoving = true;
         for (float i = 0f; i < 1; i += Time.unscaledDeltaTime /(MovingTime))
         {
             _cameraSize.orthographicSize = Mathf.Lerp(_cameraSize.orthographicSize, size, EasingFunctions.SmoothSquared(i));
@@ -85,6 +88,7 @@ public class CametaFollow : MonoBehaviour
             yield return null;
         }
         transform.position = new Vector3(Place.position.x, Place.position.y, transform.position.z);
+        isCameraMoving = false;
     }
 
     //private IEnumerator StepsFromPoint()

@@ -5,15 +5,14 @@ using UnityEngine;
 public class OpenPropsMenu : MonoBehaviour
 {
     private GameObject menu;
-    private Transform props;
+    //private Transform props;
     private GameObject obstacle;
-    private string nameObstacle="No type";
+    private string nameObstacle="Notype";
 
     private bool isUsed = false;
     // Start is called before the first frame update
     public void Start()
     {
-        props = transform.parent;
         menu = CanvasManager.Instance._ObstaclesMenu;
     }
     public void AttachMountedObstacle(GameObject newObstacles, string name)
@@ -47,7 +46,7 @@ public class OpenPropsMenu : MonoBehaviour
         if (menu.activeSelf) return;
         menu.SetActive(true);
         menu.GetComponent<ObstaclePlacement>().SetNewSpawnPlace(transform);//CanvasManager
-        Color color = gameObject.GetComponent<Renderer>().material.color=new Color(1f, 0.5f, 0.5f, 0.5f);
+        gameObject.GetComponent<Renderer>().material.color=new Color(1f, 0.5f, 0.5f, 0.5f);
         
         //for(int i=0; i<props.childCount;i++)
         //{

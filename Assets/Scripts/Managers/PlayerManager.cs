@@ -22,7 +22,7 @@ public class BodyParts
 public class ClassPlayerState
 {
     public string StateName;
-    public List<ClassPartState> Part = new List<ClassPartState>();
+    public List<ClassPartState> Part= new List<ClassPartState>();
 }
 
 [System.Serializable]
@@ -64,13 +64,11 @@ public class PlayerManager : SimpleSingleton<PlayerManager>
     [Header("Debug")]
     public string CurrentState;
 
-    [Header("Cling parameters")]
+    [Header ("Cling parameters")]
     private bool _iscatch = false;
     public float stamina = 1;
-    public float HoverSpeed;
-    public float RecoverySpeed;
-    public float DelayUntilRecoveryStarts;
-    private float delayUntilRecoveryStartsCounter;
+    public float hover_time;
+    public float recovery_time;
 
     // managers
     private CountDownTimer _countDownTimer;
@@ -79,6 +77,58 @@ public class PlayerManager : SimpleSingleton<PlayerManager>
     private Rigidbody2D Head; // обьект для определения малой скорости, чтобы фиксировать конец игры
     private bool LowVelocityActive = true; // помогает нормально работать таймеру конца игры
 
+
+    [Header("Poses")]
+    public List<StickmanPosesInventory> StickmanPoses = new List<StickmanPosesInventory>();
+    public List<StickmanPosesClass> StickmansPartsOfBody = new List<StickmanPosesClass>();
+
+  [System.Serializable]
+    public class StickmanPosesClass
+    {
+        public Vector3 Bodyposition;
+        public Quaternion BodyRotation;
+    }
+
+    [System.Serializable]
+    public class StickmanPosesInventory
+    {
+        public string nameOfPose;
+        public List<StickmanPosesClass> stickmanPosesClass;
+    }
+
+    // Сохраняет позу
+    [Button("SaveThePose")]
+    public bool AnyName;
+    public void SaveThePose()
+    {
+        if (StickmansPartsOfBody != null) StickmansPartsOfBody.Clear();
+        foreach (BodyPartsName s in Enum.GetValues(typeof(BodyPartsName)))
+        {
+            StickmansPartsOfBody.Add(new StickmanPosesClass() { Bodyposition = (Body[(int)s].StickmanBody.transform.position), BodyRotation = Body[(int)s].StickmanBody.transform.rotation });           
+        }
+        StickmanPoses.Add(new StickmanPosesInventory() { stickmanPosesClass = StickmansPartsOfBody });
+        Debug.Log("The pose is saved");
+    }
+
+
+    // Установить позу
+    [Button("FixThePose")]
+    public bool AnyName2;
+    public string NameOfPose;
+    public void FixThePose()
+    {
+        foreach (StickmanPosesInventory Pose in StickmanPoses)
+        {
+            if (Pose.nameOfPose == NameOfPose)
+            {
+                foreach (BodyPartsName s in Enum.GetValues(typeof(BodyPartsName)))
+                {        
+                    Body[(int)s].StickmanBody.transform.position = Pose.stickmanPosesClass[(int)s].Bodyposition ;
+                    Body[(int)s].StickmanBody.transform.rotation = Pose.stickmanPosesClass[(int)s].BodyRotation ;
+                }  
+            }
+        }
+    }
 
 
     public enum BodyPartsName
@@ -104,23 +154,33 @@ public class PlayerManager : SimpleSingleton<PlayerManager>
 
         //при старте записываем обьект head, чтобы мы его могли использовать в дальнейшем для проверки конца игры
         Head = Body[1].Rigidbody;
+
     }
-    private void CatchControl()
+
+    private void Update()
     {
         if (Input.GetKey(KeyCode.Space))
         {
-            if (stamina > 0.001f) Catch();
-            else UnCatch();
+            if (_iscatch)
+            {
+                if (stamina >= 0.001)
+                    Catch();
+                else
+                    UnCatch();
+            }
+            else
+            {
+                if (stamina >= 0.2)
+                    Catch();
+                else
+                    UnCatch();
+            }
         }
         else
         {
             UnCatch();
         }
-    }
-    private void Update()
-    {
 
-        CatchControl();
 
         if (Input.GetKey("w"))
         {
@@ -171,38 +231,24 @@ public class PlayerManager : SimpleSingleton<PlayerManager>
             LeftHand.UnCatch();
             RightHand.UnCatch();
         }
-
-        if (delayUntilRecoveryStartsCounter > 0f) delayUntilRecoveryStartsCounter -= Time.fixedDeltaTime;
-
-        if (LeftHand.catched || RightHand.catched)
+        if (LeftHand.catched||RightHand.catched)
         {
-            if (LeftHand.catched && RightHand.catched)
-            {
-                stamina -= Time.fixedDeltaTime * HoverSpeed;
-
+            if(LeftHand.catched && RightHand.catched)
+            { 
+                stamina -=  Time.fixedDeltaTime /hover_time;
+            
             }
             else
             {
-                stamina -= 2f * Time.fixedDeltaTime * HoverSpeed;
+                stamina -= 2*Time.fixedDeltaTime / hover_time;
             }
-            if (stamina < 0f)
-            {
-                stamina = 0f;
-                delayUntilRecoveryStartsCounter = DelayUntilRecoveryStarts;
-            }
+            if (stamina < 0) stamina = 0f;
         }
         else
         {
-            if (delayUntilRecoveryStartsCounter <= 0f)
-                if (stamina < 1f)
-                {
-                    stamina += Time.fixedDeltaTime * RecoverySpeed;
-                    if (stamina > 1f) stamina = 1f;
-                }
-
+            stamina += Time.fixedDeltaTime / recovery_time;
+            if (stamina > 1) stamina = 1f;
         }
-
-
     }
 
     // устанавливаем состояние персонажа
@@ -233,7 +279,7 @@ public class PlayerManager : SimpleSingleton<PlayerManager>
                     }
                 }
             }
-        }
+        }   
     }
 
     public void DisabledControlOfBodyPart()
@@ -258,7 +304,7 @@ public class PlayerManager : SimpleSingleton<PlayerManager>
         Body[(int)BodyPartsName.Head].StickmanBody.StopGetDamage(0.1f);
         Body[(int)BodyPartsName.Head].Rigidbody.AddForce(direction * Force, ForceMode2D.Impulse);
     }
-    //мой кодик гг
+    //мой код
 
     // проверяем скорость персонажа, чтобы закончить игру
     public void CheckLowVelocity()
@@ -302,7 +348,7 @@ public class PlayerManager : SimpleSingleton<PlayerManager>
             });
             // проверяем у новосозданного обьекта в списке, включен ли у него данные компоненты
             if (!Body[i].StickmanBody.gameObject.GetComponent<HingeJoint2D>().enabled ||
-                 Body[i].StickmanAngle == null)
+                 Body[i].StickmanAngle == null  )
             {
                 //если нет, то делаем неактивным этот элемент в списке
                 Body[i].active = false;
@@ -328,11 +374,11 @@ public class PlayerManager : SimpleSingleton<PlayerManager>
                         angle = 0, // по стандарту выставляем угол 0
                         force = DefaultForce, // выставляем силу по стандарту
                         speed = DefaultSpeed // выставляем скорость по стандарту
-                    });
+                    }) ;
                 }
             }
         }
-
+        
     }
 
     public void Catch()

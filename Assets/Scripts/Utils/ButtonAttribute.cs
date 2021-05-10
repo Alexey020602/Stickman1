@@ -50,11 +50,11 @@ public class ButtonAttribute : PropertyAttribute
 			}
 		}
 	}
-/*[Button("MetodName")]
-public bool AnyName;
+//[Button("MetodName")]
+//public bool AnyName;
 
-public void MetodName()
-{
-	Debug.Log("Button has pressed");
-}*/
+//public void MetodName()
+//{
+//    Debug.Log("Button has pressed");
+//}
 #endif

@@ -10,14 +10,21 @@ public class CanvasManager : SimpleSingleton<CanvasManager>
     public Text TheBestCounter;
     public CountDownTimer CountDownTimer;
 
+
     [Header("Player")]
     public Image StaminaBar;
-    private PlayerManager Player;
+    public PlayerManager Player;
 
     [Header("Menu")]
     public GameObject _RestartMenu;
     public GameObject _PauseMenu;
+    public GameObject _TransportMenu;
     public GameObject _ObstaclesMenu;
+
+
+    [Header("Restart Menu")]
+    public Text RMTheBestCounter;
+
 
     public void UpdateCurrentCounter(float Counter)
     {
@@ -31,15 +38,17 @@ public class CanvasManager : SimpleSingleton<CanvasManager>
     public void RestartMenu(bool active)
     {
         _RestartMenu.SetActive(active);
+        RMTheBestCounter.text = "Лучший счет: " + (int)GameManager.Instance.TheBestCounter;
     }
     public void PauseMenu(bool active)
     {
         _PauseMenu.SetActive(active);
     }
-    private void Awake()
+    public void TransportMenu(bool active)
     {
-        Player = PlayerManager.Instance;
+        _TransportMenu.SetActive(active);
     }
+
     private void Update()
     {
         StaminaBar.fillAmount = Player.stamina;

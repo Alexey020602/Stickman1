@@ -24,14 +24,25 @@ public class StickmanBody : MonoBehaviour
     private float RedColor;
 
     private GameManager _gameManager;
+    private Levelmanager _levelManager;
+    private PlayerManager _playerManager;
 
     private bool CanSlowPain = true;
     private bool CanSlowPainBone = true;
     private bool CanTakeDamage = true;
 
+    //Nina starts
+    public GameObject[] LowerPartsOfBody;
+    private bool AreAddedToDestroyList = false;
+    public Transform _transform;
+    //end
+
     void Start()
     {
         _gameManager = GameManager.Instance;
+        _levelManager = Levelmanager.Instance;
+        _playerManager = PlayerManager.Instance;
+        _transform = GetComponent<Transform>();
         Body = GetComponent<Rigidbody2D>();
         Body.AddForce(OffSetImpulse, ForceMode2D.Impulse);
 
@@ -83,6 +94,43 @@ public class StickmanBody : MonoBehaviour
         LastVelocity = ModuleVector(Body.velocity);
 
     }
+
+    //Nina starts
+
+
+    void OnJointBreak2D(Joint2D brokenJoint)
+    {
+        for (int i = 0; i < LowerPartsOfBody.Length; i++)
+        {
+            StickmanBody stickmanBody = LowerPartsOfBody[i].gameObject.GetComponent<StickmanBody>();
+
+
+            _levelManager.DestroyedPartsOfBodyList.Add(stickmanBody);
+            stickmanBody.AreAddedToDestroyList = true;
+            stickmanBody.DestroyedLowerPartsOfBody();
+
+        }
+
+        _levelManager.DestroyStickmanBody();
+
+    }
+
+    public void DestroyedLowerPartsOfBody()
+    {
+        if (AreAddedToDestroyList)
+        {
+            for (int i = 0; i < LowerPartsOfBody.Length; i++)
+            {
+                _levelManager.DestroyedPartsOfBodyList.Add(LowerPartsOfBody[i].GetComponent<StickmanBody>());
+
+                StickmanBody stickmanBody = LowerPartsOfBody[i].gameObject.GetComponent<StickmanBody>();
+                stickmanBody.AreAddedToDestroyList = true;
+                stickmanBody.DestroyedLowerPartsOfBody();
+    
+            }
+        }
+    }
+    //end
 
 
 

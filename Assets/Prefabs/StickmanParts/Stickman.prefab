@@ -103,13 +103,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1520039988386293339}
-  m_LocalRotation: {x: 0, y: 0, z: -0.38268343, w: 0.92387956}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: 0.39527798, w: -0.9185616}
+  m_LocalPosition: {x: 0.00003291101, y: -0.00006612475, z: 0}
   m_LocalScale: {x: 1.5999999, y: 1.5999999, z: 1}
   m_Children: []
   m_Father: {fileID: 4378154936456223191}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -45}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -46.567}
 --- !u!212 &6055174574731235921
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -247,7 +247,9 @@ GameObject:
   m_Component:
   - component: {fileID: 9037090466142948737}
   - component: {fileID: 3456778104131346148}
-  m_Layer: 10
+  - component: {fileID: 114209209350184832}
+  - component: {fileID: 6804310806397615518}
+  m_Layer: 0
   m_Name: Stickman
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -295,6 +297,7 @@ MonoBehaviour:
   DefaultSpeed: 300
   DefaultForce: 500
   UseDefaultParameters: 1
+  MinForce: 20
   BodyPartsString:
   - Head
   - Body0
@@ -782,6 +785,43 @@ MonoBehaviour:
       speed: 300
   InfinityGame: 0
   CurrentState: 
+  stamina: 1
+  hover_time: 0
+  recovery_time: 0
+--- !u!114 &114209209350184832
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2411600767677082370}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2a5b0b49d60764489218b0071c7176d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ArrowPrefab: {fileID: 114988952511105442, guid: 38625de3263559d41ab01763ee8f93a3,
+    type: 3}
+  ArrowAppearence: {fileID: 0}
+  arrow: {fileID: 0}
+  MinForseToPush: 20
+  ForseToPush: 200
+--- !u!70 &6804310806397615518
+CapsuleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2411600767677082370}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: -1.3497138, y: 2.4178042}
+  m_Size: {x: 3.1994278, y: 7.060094}
+  m_Direction: 0
 --- !u!1 &2671537367511616589
 GameObject:
   m_ObjectHideFlags: 0
@@ -1124,6 +1164,8 @@ MonoBehaviour:
   SpeedSlowPainBone: 4
   SpeedSlowPain: 4
   TimeBetweenDamage: 0.1
+  LowerPartsOfBody:
+  - {fileID: 4378154936948526102}
 --- !u!1 &4378154935419761760
 GameObject:
   m_ObjectHideFlags: 0
@@ -1308,6 +1350,8 @@ MonoBehaviour:
   SpeedSlowPainBone: 4
   SpeedSlowPain: 4
   TimeBetweenDamage: 0.1
+  LowerPartsOfBody:
+  - {fileID: 4378154937003071205}
 --- !u!1 &4378154935426705369
 GameObject:
   m_ObjectHideFlags: 0
@@ -1492,6 +1536,7 @@ MonoBehaviour:
   SpeedSlowPainBone: 4
   SpeedSlowPain: 4
   TimeBetweenDamage: 0.1
+  LowerPartsOfBody: []
 --- !u!1 &4378154935781563178
 GameObject:
   m_ObjectHideFlags: 0
@@ -1676,6 +1721,8 @@ MonoBehaviour:
   SpeedSlowPainBone: 4
   SpeedSlowPain: 4
   TimeBetweenDamage: 0.1
+  LowerPartsOfBody:
+  - {fileID: 4378154936826697584}
 --- !u!1 &4378154936012162614
 GameObject:
   m_ObjectHideFlags: 0
@@ -1860,6 +1907,8 @@ MonoBehaviour:
   SpeedSlowPainBone: 4
   SpeedSlowPain: 4
   TimeBetweenDamage: 0.1
+  LowerPartsOfBody:
+  - {fileID: 4378154936456223186}
 --- !u!1 &4378154936204682633
 GameObject:
   m_ObjectHideFlags: 0
@@ -2044,6 +2093,8 @@ MonoBehaviour:
   SpeedSlowPainBone: 4
   SpeedSlowPain: 4
   TimeBetweenDamage: 0.1
+  LowerPartsOfBody:
+  - {fileID: 4378154935426705369}
 --- !u!1 &4378154936456223186
 GameObject:
   m_ObjectHideFlags: 0
@@ -2228,6 +2279,7 @@ MonoBehaviour:
   SpeedSlowPainBone: 4
   SpeedSlowPain: 4
   TimeBetweenDamage: 0.1
+  LowerPartsOfBody: []
 --- !u!1 &4378154936706602340
 GameObject:
   m_ObjectHideFlags: 0
@@ -2416,6 +2468,7 @@ MonoBehaviour:
   SpeedSlowPainBone: 4
   SpeedSlowPain: 4
   TimeBetweenDamage: 0.1
+  LowerPartsOfBody: []
 --- !u!255 &9213767639742541072
 FixedJoint2D:
   m_ObjectHideFlags: 0
@@ -2450,6 +2503,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 768
   CathObjects: {fileID: 0}
+  img: {fileID: 0}
   HingeJoint: {fileID: 3008717242481862857}
   catched: 0
 --- !u!58 &5256818912805758757
@@ -2676,6 +2730,8 @@ MonoBehaviour:
   SpeedSlowPainBone: 4
   SpeedSlowPain: 4
   TimeBetweenDamage: 0.1
+  LowerPartsOfBody:
+  - {fileID: 4378154936706602340}
 --- !u!1 &4378154936826697584
 GameObject:
   m_ObjectHideFlags: 0
@@ -2864,6 +2920,7 @@ MonoBehaviour:
   SpeedSlowPainBone: 4
   SpeedSlowPain: 4
   TimeBetweenDamage: 0.1
+  LowerPartsOfBody: []
 --- !u!114 &2713568710630640907
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2880,6 +2937,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 768
   CathObjects: {fileID: 0}
+  img: {fileID: 0}
   HingeJoint: {fileID: 3460914866399192599}
   catched: 0
 --- !u!255 &2646123627470281524
@@ -3124,6 +3182,10 @@ MonoBehaviour:
   SpeedSlowPainBone: 4
   SpeedSlowPain: 4
   TimeBetweenDamage: 0.1
+  LowerPartsOfBody:
+  - {fileID: 4378154935419761760}
+  - {fileID: 4378154936742667577}
+  - {fileID: 4378154935781563178}
 --- !u!1 &4378154937003071205
 GameObject:
   m_ObjectHideFlags: 0
@@ -3286,6 +3348,9 @@ MonoBehaviour:
   SpeedSlowPainBone: 4
   SpeedSlowPain: 4
   TimeBetweenDamage: 0.1
+  LowerPartsOfBody:
+  - {fileID: 4378154936204682633}
+  - {fileID: 4378154936012162614}
 --- !u!1 &4581637977051065235
 GameObject:
   m_ObjectHideFlags: 0

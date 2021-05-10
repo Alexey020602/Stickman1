@@ -21,6 +21,7 @@ public class ObstanclesMode : MonoBehaviour
     }
     public void ClickOnButtonPropMenu()
     {
+        if (Camera.isCameraMoving) return;
         if(isModeOn)
         {
             text.text = "Menu location";

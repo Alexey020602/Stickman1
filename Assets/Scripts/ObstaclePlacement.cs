@@ -39,16 +39,27 @@ public class ObstaclePlacement : MonoBehaviour
             if (obstacle.ObstacleName == name)
             {
                 OpenPropsMenu installationPoint = PositionOfObstacles.gameObject.GetComponent<OpenPropsMenu>();
-                if(installationPoint.IsUsed())
+                if (installationPoint.IsUsed())
                 {
                     Destroy(installationPoint.AttachedObstacle());
                 }
                 _obstaclesMenu.SetActive(false);
-                GameObject gO = Instantiate<GameObject>(obstacle.ObstaclePrefab, PositionOfObstacles.position + Vector3.forward, obstacle.ObstaclePrefab.transform.rotation, Obstacles);
-                gO.GetComponent<SceneName>().sceneName = SceneManager.GetActiveScene().name; 
-                installationPoint.AttachMountedObstacle(gO, name);
-                SceneManager.MoveGameObjectToScene(Instantiate(gO), SceneToAddObstacles);
+
+                installationPoint.AttachMountedObstacle(Instantiate(obstacle.ObstaclePrefab, PositionOfObstacles.position + Vector3.forward, obstacle.ObstaclePrefab.transform.rotation, Obstacles), name);
                 installationPoint.Used();
+
+                PositionOfObstacles.gameObject.GetComponent<Renderer>().material.color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+            }
+            else if (name == "Notype")
+            {
+                OpenPropsMenu installationPoint = PositionOfObstacles.gameObject.GetComponent<OpenPropsMenu>();
+                if (installationPoint.IsUsed())
+                {
+                    Destroy(installationPoint.AttachedObstacle());
+                }
+                _obstaclesMenu.SetActive(false);
+                installationPoint.AttachMountedObstacle(null, "Notype");
+                installationPoint.UnUsed();
                 PositionOfObstacles.gameObject.GetComponent<Renderer>().material.color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
             }
         }

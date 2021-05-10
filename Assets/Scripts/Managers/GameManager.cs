@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -19,10 +18,17 @@ public class GameManager : SimpleSingleton<GameManager>
     public bool FreezeOnStart = true;
     private CanvasManager Canvas;
 
+
+    public float CurrentCounter;
+    public float TheBestCounter;
+
     public GameObject ObstacleMenuButton;
     public Transform Obstacles;
     public Transform Props;
+    private ListOfObstaclesToAdd obstaclesList;
     private string nameOfScene;
+
+
     [System.Serializable]
     public class ObstacleInventory
     {
@@ -31,52 +37,71 @@ public class GameManager : SimpleSingleton<GameManager>
         //[HideInInspector]
         //public GameObject Obstacle;
     }
-    public List<ObstacleInventory> ListOfObstacles=new List<ObstacleInventory>();
 
-    public float CurrentCounter;
-    public static float TheBestCounter;
+    public List<ObstacleInventory> ListOfObstacles = new List<ObstacleInventory>();
 
-
-    public Transform _arrowDirection;
-
-    
     void Start()
     {
+        obstaclesList = ListOfObstaclesToAdd.Instance;
         _player = PlayerManager.Instance;
         Canvas = CanvasManager.Instance;
 
-        TheBestCounter = Progress.TheBestCounter;
+
+        if (PlayerPrefs.HasKey("TheBestCounter"))
+        {
+            TheBestCounter = PlayerPrefs.GetInt("TheBestCounter");
+        }
+        else TheBestCounter = 0;
+
         Canvas.UpdateTheBestCounter(TheBestCounter);
         WaitForStartGame();
         StartButtons();
+
         nameOfScene = SceneManager.GetActiveScene().name;
+        if (nameOfScene == null)
+        {
+            Debug.LogError("Scene has not name");
+            return;
+        }
+        if (nameOfScene == "MainMenu")
+        {
+            return;
+        }
         SetObstacles();
-        
 
     }
     public void SetObstacles()
     {
-
-        for (int i = 0; i < Props.childCount; i++)
+        if (obstaclesList == null)
         {
-            Transform PositionOfObstacle = Props.GetChild(i);
-            string name = PlayerPrefs.GetString($"{nameOfScene}type{i}");
-            foreach (ObstacleInventory obstacle in ListOfObstacles)
+            return;
+        }
+        //if (obstaclesList.ObstaclesOfScene == null) return;
+
+        if (obstaclesList.ObstaclesOfScene.Item1 == nameOfScene)
+        {
+            for (int i = 0; i < Props.childCount; i++)
             {
-                if (obstacle.ObstacleName == name)
+                Transform PositionOfObstacle = Props.GetChild(i);
+                string name = obstaclesList.ObstaclesOfScene.Item2[i];
+                foreach (ObstacleInventory obstacle in ListOfObstacles)
                 {
-                    OpenPropsMenu installationPoint = PositionOfObstacle.gameObject.GetComponent<OpenPropsMenu>();
-                    if (installationPoint.IsUsed())
+                    if (obstacle.ObstacleName == name)
                     {
-                        Destroy(installationPoint.AttachedObstacle());
+                        OpenPropsMenu installationPoint = PositionOfObstacle.gameObject.GetComponent<OpenPropsMenu>();
+                        if (installationPoint.IsUsed())
+                        {
+                            Destroy(installationPoint.AttachedObstacle());
+                        }
+                        installationPoint.AttachMountedObstacle(Instantiate(obstacle.ObstaclePrefab, PositionOfObstacle.position + Vector3.forward, obstacle.ObstaclePrefab.transform.rotation, Obstacles), name);
+                        installationPoint.Used();
                     }
-                    installationPoint.AttachMountedObstacle(Instantiate<GameObject>(obstacle.ObstaclePrefab, PositionOfObstacle.position + Vector3.forward, obstacle.ObstaclePrefab.transform.rotation, Obstacles), name);
-                    installationPoint.Used();
                 }
             }
         }
-    }
 
+
+    }
     void StartButtons()
     {
 
@@ -115,12 +140,10 @@ public class GameManager : SimpleSingleton<GameManager>
         {
             _player.SetImpulse(Force, -direction);
         }
-        ObstacleMenuButton.SetActive(false);
-      //  Debug.LogWarning(direction);
-        
         Time.timeScale = 1f;
     }
-    //мой кодик гг
+
+
 
     public void WaitForStartGame()
     {
@@ -151,13 +174,12 @@ public class GameManager : SimpleSingleton<GameManager>
         if (CurrentCounter > TheBestCounter)
         {
             TheBestCounter = CurrentCounter;
-            Progress.TheBestCounter = TheBestCounter;
-            if (Canvas)
-                Canvas.UpdateTheBestCounter(TheBestCounter);
+            PlayerPrefs.SetInt("TheBestCounter", (int)TheBestCounter);
+            PlayerPrefs.Save();
+            Canvas.UpdateTheBestCounter(TheBestCounter);
         }
         {
-            if (Canvas)
-                Canvas.RestartMenu(state);
+            Canvas.RestartMenu(state);
         }
     }
 
@@ -182,17 +204,20 @@ public class GameManager : SimpleSingleton<GameManager>
         SceneManager.LoadScene(Level);
     }
     // =========================================состояния игры=========================================
-    private void OnApplicationQuit()
+    private void OnDisable()
     {
-        
-        for (int i=0; i<Props.childCount; i++)
+        obstaclesList.SetScene(nameOfScene);
+        if (PlayerPrefs.HasKey("Score of user"))
         {
-            
-            Transform obstacle = Props.GetChild(i);
-            OpenPropsMenu obstaclePlace = obstacle.GetComponent<OpenPropsMenu>();
-            PlayerPrefs.SetString($"{nameOfScene}type{i}", obstaclePlace.TypeAttachedObstacle());
+            float score = PlayerPrefs.GetFloat("Score of user");
+            score += TheBestCounter;
+            Debug.Log($"{score}");
+            PlayerPrefs.SetFloat("Score of user", score);
+        }
+        else
+        {
+            PlayerPrefs.SetFloat("Score of user", 0f);
         }
         PlayerPrefs.Save();
     }
-    
 }

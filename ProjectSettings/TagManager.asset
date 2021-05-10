@@ -3,8 +3,7 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags:
-  - Prop
+  tags: [Prop]
   layers:
   - Default
   - TransparentFX
@@ -50,6 +49,9 @@ TagManager:
     locked: 0
   - name: StickmanBehind
     uniqueID: 2496903261
+    locked: 0
+  - name: Things
+    uniqueID: 2979551161
     locked: 0
   - name: UI
     uniqueID: 462714107
