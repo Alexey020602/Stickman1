@@ -3017,20 +3017,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1821403810}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 40fdfafcbf1f2e54f8827176d50f7d3b, type: 3}
+  m_Script: {fileID: 11500000, guid: 21815868a278d7943907653e6e124262, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PositionOfObstacles: {fileID: 0}
-  Obstacles: {fileID: 0}
-  SceneToAddObstacles:
-    m_Handle: 0
-  ListOfObstacles:
-  - ObstacleName: Cube
-    ObstaclePrefab: {fileID: 2812142267222121234, guid: 61371f81bb8fd3a40a7845047b8aa187,
-      type: 3}
-  - ObstacleName: Triangle
-    ObstaclePrefab: {fileID: 2812142267222121234, guid: 053d8722ff642104b8596d4a7ccdb9e6,
-      type: 3}
 --- !u!114 &1821403813
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3656,14 +3645,14 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1821403812}
-        m_MethodName: FindObstacle
-        m_Mode: 5
+        m_MethodName: BuyForPoints
+        m_Mode: 4
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: Triangle
+          m_FloatArgument: 1500
+          m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &2032377240
@@ -3859,14 +3848,14 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1821403812}
-        m_MethodName: FindObstacle
-        m_Mode: 5
+        m_MethodName: BuyForPoints
+        m_Mode: 4
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: Cube
+          m_FloatArgument: 1000
+          m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &2059442577
@@ -5003,15 +4992,15 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 8159199807639773974}
-        m_MethodName: FindObstacle
-        m_Mode: 5
+      - m_Target: {fileID: 8159199807639774060}
+        m_MethodName: BuyForStars
+        m_Mode: 4
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: Triangle
+          m_FloatArgument: 4
+          m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!1 &8159199806986547747
@@ -5094,15 +5083,15 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 8159199807639773974}
-        m_MethodName: FindObstacle
-        m_Mode: 5
+      - m_Target: {fileID: 8159199807639774060}
+        m_MethodName: BuyForStars
+        m_Mode: 4
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: Cube
+          m_FloatArgument: 3
+          m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &8159199806986547758
@@ -5252,29 +5241,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8159199807639774058}
   m_CullTransparentMesh: 0
---- !u!114 &8159199807639773974
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8159199807639774058}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 40fdfafcbf1f2e54f8827176d50f7d3b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  PositionOfObstacles: {fileID: 0}
-  Obstacles: {fileID: 0}
-  SceneToAddObstacles:
-    m_Handle: 0
-  ListOfObstacles:
-  - ObstacleName: Cube
-    ObstaclePrefab: {fileID: 2812142267222121234, guid: 61371f81bb8fd3a40a7845047b8aa187,
-      type: 3}
-  - ObstacleName: Triangle
-    ObstaclePrefab: {fileID: 2812142267222121234, guid: 053d8722ff642104b8596d4a7ccdb9e6,
-      type: 3}
 --- !u!1 &8159199807639774058
 GameObject:
   m_ObjectHideFlags: 0
@@ -5286,7 +5252,7 @@ GameObject:
   - component: {fileID: 8159199807639774059}
   - component: {fileID: 8159199807639773973}
   - component: {fileID: 8159199807639773972}
-  - component: {fileID: 8159199807639773974}
+  - component: {fileID: 8159199807639774060}
   m_Layer: 5
   m_Name: StarsMenu
   m_TagString: Untagged
@@ -5317,6 +5283,18 @@ RectTransform:
   m_AnchoredPosition: {x: -1, y: 88}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &8159199807639774060
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8159199807639774058}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21815868a278d7943907653e6e124262, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &8159199807893057792
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -21,6 +21,11 @@ public class GameManager : SimpleSingleton<GameManager>
 
     public float CurrentCounter;
     public float TheBestCounter;
+    public int StarsCounter=0;
+
+    public Transform Stars;
+    public GameObject SrarPrefab;
+
 
     public GameObject ObstacleMenuButton;
     public Transform Obstacles;
@@ -70,6 +75,25 @@ public class GameManager : SimpleSingleton<GameManager>
         SetObstacles();
 
     }
+    //public void SetStars()
+    //{
+    //    if (Stars == null) return;
+    //    for(int i=0; i<Stars.childCount;i++)
+    //    {
+
+    //        if( PlayerPrefs.HasKey($"{nameOfScene} {i} star collected"))
+    //        {
+    //            if(PlayerPrefs.GetInt($"{nameOfScene} {i} star collected")==1)
+    //            {
+    //                Destroy(Stars.GetChild(i).gameObject);
+    //            }
+    //        }
+    //        else
+    //        {
+    //            PlayerPrefs.SetInt($"{nameOfScene} {i} star collected", 0);
+    //        }
+    //    }
+    //}
     public void SetObstacles()
     {
         if (obstaclesList == null)
@@ -207,12 +231,23 @@ public class GameManager : SimpleSingleton<GameManager>
     private void OnDisable()
     {
         obstaclesList.SetScene(nameOfScene);
+        if (PlayerPrefs.HasKey($"{nameOfScene}StarsTheBestScore"))
+        {
+            int a = PlayerPrefs.GetInt($"{nameOfScene}StarsTheBestScore");
+            if (a<StarsCounter)
+            {
+                PlayerPrefs.SetInt($"{nameOfScene}StarsTheBestScore", StarsCounter);
+                PlayerPrefs.SetFloat("StarScoreOfUser", PlayerPrefs.GetFloat("StarScoreOfUser")+StarsCounter-a);
+            }
+        }
+        else
+        {
+            PlayerPrefs.SetInt($"{nameOfScene}StarsTheBestScore", StarsCounter);
+            PlayerPrefs.SetFloat("StarScoreOfUser", PlayerPrefs.GetFloat("StarScoreOfUser") + StarsCounter );
+        }
         if (PlayerPrefs.HasKey("Score of user"))
         {
-            float score = PlayerPrefs.GetFloat("Score of user");
-            score += TheBestCounter;
-            Debug.Log($"{score}");
-            PlayerPrefs.SetFloat("Score of user", score);
+            PlayerPrefs.SetFloat("Score of user", PlayerPrefs.GetFloat("Score of user")+CurrentCounter);
         }
         else
         {
