@@ -3,8 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Mathematics;
-
-
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 [System.Serializable]
 public class BodyParts
 {
@@ -13,16 +14,22 @@ public class BodyParts
     public Rigidbody2D Rigidbody;
     public StickmanBody StickmanBody;
     public StickmanAngle StickmanAngle;
+    public HingeJoint2D Joint;
     public float angle;
     public float force;
     public float speed;
+    [HideInInspector]
+    public PhysicsMaterial2D physicsMaterial;
 }
 
+#region PlayerState Classes
+
+#region Game PlayerStates
 [System.Serializable]
 public class ClassPlayerState
 {
     public string StateName;
-    public List<ClassPartState> Part= new List<ClassPartState>();
+    public List<ClassPartState> Part = new List<ClassPartState>();
 }
 
 [System.Serializable]
@@ -34,10 +41,99 @@ public class ClassPartState
     public float force;
     public float speed;
 }
+#endregion
 
+#region Static PlayerStates
+
+[System.Serializable]
+public class BodyPartStaticStateCL
+{
+    public GameObject Part;
+    public Vector3 Position;
+    public Quaternion Rotation;
+}
+[System.Serializable]
+public class PlayerStaticStateCL
+{
+    public string PoseName;
+    public List<BodyPartStaticStateCL> BodyParts;
+}
+
+
+#endregion
+
+#endregion
+
+
+
+
+[System.Serializable]
+public class StaminaCL
+{
+    [Min(0)]
+    public float Size;
+    [Space(4f)]
+    [Min(0)]
+    public float HoverTime;
+    [Min(0)]
+    public float RecoveryTime;
+    [Space(4f)]
+    [Tooltip("the minimum value with which we can grapple after losing stamina ")]
+    [Min(0)]
+    public float LowerSizeToCatch;
+
+    private float fullSize;
+    private bool canCatch;
+    private bool isInfinityStamina;
+
+    public void SetFullSize() => fullSize = Size;
+    public bool HasStamina() => canCatch;
+    public void DownGrade(float factor = 1f)
+    {
+        if (isInfinityStamina)
+            return;
+        Size -= HoverTime * Time.deltaTime * factor;
+        if (Size < 0)
+        {
+            Size = 0;
+            canCatch = false;
+        }
+    }
+    public void UpGrade(float factor = 1f)
+    {
+        if (isInfinityStamina)
+            return;
+        Size += HoverTime * Time.deltaTime * factor;
+
+        if (Size > fullSize)
+            Size = fullSize;
+
+        if (!canCatch && Size > LowerSizeToCatch)
+            canCatch = true;
+    }
+    public float GetFillAmount() => Size / fullSize;
+
+    public void IsInfinityStamina(bool state)
+    {
+        isInfinityStamina = state;
+    }
+}
 
 public class PlayerManager : SimpleSingleton<PlayerManager>
 {
+    public enum StartGameTypes
+    {
+        ArrowPush,
+        ButtonWithPush,
+        ButtonWithoutPush,
+        Instantly
+    }
+    public enum ControlTypes
+    {
+        Keyboard,
+        Buttons
+    }
+
     // inspector
     [Header("Body part")]
     public float DefaultSpeed = 100;
@@ -46,179 +142,252 @@ public class PlayerManager : SimpleSingleton<PlayerManager>
 
     public float MinForce = 20;
 
-    public string[] BodyPartsString = { "Head", "Body0", "Body1", "Body2", "LegForward1", "LegForward0", "LegBehind0", "LegBehind1", "HandBehind0", "HandBehind1", "HandForward0", "HandForward1" };
+    //public string[] BodyPartsString = { "Head", "Body0", "Body1", "Body2", "LegForward1", "LegForward0", "LegBehind0", "LegBehind1", "HandBehind0", "HandBehind1", "HandForward0", "HandForward1" };
 
     // хранит в себе данные о всех частях тела
     public List<BodyParts> Body = new List<BodyParts>();
 
-    [Header("Player Control")]
+    [Header("Hands")]
     public PlayerCling LeftHand;
     public PlayerCling RightHand;
 
-    [Header("Player States")]
+    [Header("Player contol states")]
     public List<ClassPlayerState> PlayerState = new List<ClassPlayerState>();
+    #region Player State Inspector Control
+
+#if UNITY_EDITOR
+    [Button("SetDynamicStateByName")] public bool bt3_;
+    public bool SetAlsoAsStaticPose = true;
+    public string DynamicPoseName;
+
+    public void SetDynamicStateByName()
+    {
+        PlayerState.Add(new ClassPlayerState());
+        int index = PlayerState.Count - 1;
+        PlayerState[index].StateName = DynamicPoseName;
+        PlayerState[index].Part = new List<ClassPartState>();
+        for (int i = 0; i < Body.Count; i++)
+        {
+            float angle = Body[i].Joint ? Body[i].Joint.jointAngle : 0;
+
+            if (Body[i].Joint)
+            {
+                if (angle > Body[i].Joint.limits.max)
+                    angle -= 360f;
+                else if (angle < Body[i].Joint.limits.min)
+                    angle += 360f;
+            }
+            PlayerState[index].Part.Add(new ClassPartState()
+            {
+                speed = DefaultSpeed,
+                angle = Body[i].Joint ? angle : 0,
+                force = DefaultForce,
+                Name = Body[i].Name,
+                Part = Body[i].Rigidbody.gameObject
+            });
+        }
+        EditorUtility.SetDirty(this);
+        if (SetAlsoAsStaticPose)
+        {
+            PoseName = DynamicPoseName;
+            SetStaticStateByName();
+        }
+    }
+#endif
+
+    #endregion
+
+    [Header("Player static states")]
+    public List<PlayerStaticStateCL> PlayerStaticStates = new List<PlayerStaticStateCL>();
+    #region Player Static State Inspector Control
+#if UNITY_EDITOR
+    [Button("SetStaticStateByName")] public bool bt1_;
+    [Button("GetStaticStateByName")] public bool bt2_;
+    public string PoseName;
+
+    public void SetStaticStateByName()
+    {
+        PlayerStaticStates.Add(new PlayerStaticStateCL());
+        int index = PlayerStaticStates.Count - 1;
+        PlayerStaticStates[index].PoseName = PoseName;
+        PlayerStaticStates[index].BodyParts = new List<BodyPartStaticStateCL>();
+
+        for (int i = 0; i < Body.Count; i++)
+        {
+            PlayerStaticStates[index].BodyParts.Add(new BodyPartStaticStateCL()
+            {
+                Part = Body[i].Rigidbody.gameObject,
+                Position = Body[i].Rigidbody.transform.localPosition,
+                Rotation = Body[i].Rigidbody.transform.localRotation
+            }) ;
+        }
+        EditorUtility.SetDirty(this);
+    }
+
+    public void GetStaticStateByName()
+    {
+        for(int i = 0; i < PlayerStaticStates.Count; i++)
+        {
+            if (PoseName == PlayerStaticStates[i].PoseName)
+            {
+                for (int j = 0; j < Body.Count; j++)
+                {
+
+                    Undo.RecordObject(Body[j].Rigidbody.transform, "State changed");
+                    Body[j].Rigidbody.transform.localPosition = PlayerStaticStates[i].BodyParts[j].Position;
+                    Body[j].Rigidbody.transform.localRotation = PlayerStaticStates[i].BodyParts[j].Rotation;
+                }
+                return;
+            }
+        }
+        EditorUtility.SetDirty(this);
+    }
+#endif
+    #endregion
 
     [Header("Game States")]
     public bool InfinityGame = false;
+    public bool CanMove = false;
+    public bool isMenu = false;
+    public StartGameTypes StartGameType = StartGameTypes.ArrowPush;
+    public CountDownTimer CountDownTimer;
+    public ControlTypes ControlType;
+    public string CurrentState;
+    public string DefaultState = "Right";
+
+    [Header("Cling parameters")]
+    public StaminaCL Stamina;
+    public bool CatchOnStart = false;
+
+    [Header("Jumper")]
+    public PhysicsMaterial2D JumperMaterial;
 
     [Header("Debug")]
-    public string CurrentState;
+    public bool DisablePoseCreator = true;
 
-    [Header ("Cling parameters")]
-    private bool _iscatch = false;
-    public float stamina = 1;
-    public float hover_time;
-    public float recovery_time;
 
-    // managers
-    private CountDownTimer _countDownTimer;
-
-    // others
     private Rigidbody2D Head; // обьект для определения малой скорости, чтобы фиксировать конец игры
     private bool LowVelocityActive = true; // помогает нормально работать таймеру конца игры
+    private bool _iscatch = false;
+    private Coroutine SetToNormalStateCor;
+    private bool cath = false;
+    private bool isPose = true;
+    private Vector3 defaultPosition;
+    [HideInInspector]
+    public Rigidbody2D catchObjectOnStart;
 
 
-    [Header("Poses")]
-    public List<StickmanPosesInventory> StickmanPoses = new List<StickmanPosesInventory>();
-    public List<StickmanPosesClass> StickmansPartsOfBody = new List<StickmanPosesClass>();
 
-  [System.Serializable]
-    public class StickmanPosesClass
+    private void Awake()
     {
-        public Vector3 Bodyposition;
-        public Quaternion BodyRotation;
-    }
-
-    [System.Serializable]
-    public class StickmanPosesInventory
-    {
-        public string nameOfPose;
-        public List<StickmanPosesClass> stickmanPosesClass;
-    }
-
-    // Сохраняет позу
-    [Button("SaveThePose")]
-    public bool AnyName;
-    public void SaveThePose()
-    {
-        if (StickmansPartsOfBody != null) StickmansPartsOfBody.Clear();
-        foreach (BodyPartsName s in Enum.GetValues(typeof(BodyPartsName)))
-        {
-            StickmansPartsOfBody.Add(new StickmanPosesClass() { Bodyposition = (Body[(int)s].StickmanBody.transform.position), BodyRotation = Body[(int)s].StickmanBody.transform.rotation });           
-        }
-        StickmanPoses.Add(new StickmanPosesInventory() { stickmanPosesClass = StickmansPartsOfBody });
-        Debug.Log("The pose is saved");
-    }
-
-
-    // Установить позу
-    [Button("FixThePose")]
-    public bool AnyName2;
-    public string NameOfPose;
-    public void FixThePose()
-    {
-        foreach (StickmanPosesInventory Pose in StickmanPoses)
-        {
-            if (Pose.nameOfPose == NameOfPose)
-            {
-                foreach (BodyPartsName s in Enum.GetValues(typeof(BodyPartsName)))
-                {        
-                    Body[(int)s].StickmanBody.transform.position = Pose.stickmanPosesClass[(int)s].Bodyposition ;
-                    Body[(int)s].StickmanBody.transform.rotation = Pose.stickmanPosesClass[(int)s].BodyRotation ;
-                }  
-            }
-        }
-    }
-
-
-    public enum BodyPartsName
-    {
-        Head,
-        Body0,
-        Body1,
-        Body2,
-        LegForward1,
-        LegForward0,
-        LegBehind0,
-        LegBehind1,
-        HandBehind0,
-        HandBehind1,
-        HandForward0,
-        HandForward1
-    }
-
-
-    private void Start()
-    {
-        _countDownTimer = CanvasManager.Instance.CountDownTimer;
-
+        Screen.sleepTimeout = SleepTimeout.NeverSleep;
         //при старте записываем обьект head, чтобы мы его могли использовать в дальнейшем для проверки конца игры
         Head = Body[1].Rigidbody;
 
+        Stamina.SetFullSize();
+
+        if (isMenu)
+            StartGameType = StartGameTypes.Instantly;
+
+        switch (StartGameType)
+        {
+            case StartGameTypes.ArrowPush:
+                Levelmanager.Instance.Pause(true);
+                Levelmanager.Instance.StartButton_SetActive(false);
+                Levelmanager.Instance.SimpleStartButton.SetActive(false);
+                break;
+            case StartGameTypes.ButtonWithPush:
+                Levelmanager.Instance.Pause(true);
+                GetComponent<ArrowSpawn>().enabled = false;
+                GetComponent<Collider2D>().enabled = false;
+                Levelmanager.Instance.StartButton_SetActive(true);
+                Levelmanager.Instance.SimpleStartButton.SetActive(false);
+                break;
+            case StartGameTypes.ButtonWithoutPush:
+                Levelmanager.Instance.Pause(true);
+                GetComponent<ArrowSpawn>().enabled = false;
+                GetComponent<Collider2D>().enabled = false;
+                Levelmanager.Instance.StartButton_SetActive(false);
+                Levelmanager.Instance.SimpleStartButton.SetActive(true);
+                break;
+            case StartGameTypes.Instantly:
+                GetComponent<ArrowSpawn>().enabled = false;
+                GetComponent<Collider2D>().enabled = false;
+                StartGame(0, Vector2.zero);
+                break;
+        }
+
+        defaultPosition = transform.position;
+
+        foreach (BodyParts part in Body)
+        {
+            part.physicsMaterial = part.Rigidbody.sharedMaterial;
+        }
     }
 
     private void Update()
     {
-        if (Input.GetKey(KeyCode.Space))
+        if (ControlType == ControlTypes.Keyboard && CanMove)
         {
-            if (_iscatch)
-            {
-                if (stamina >= 0.001)
-                    Catch();
+            cath = Input.GetKey(KeyCode.Space);
+
+            float hor = Input.GetAxisRaw("Horizontal");
+            float vert = Input.GetAxisRaw("Vertical");
+                if (vert > 0f)
+                {
+                    if (CurrentState != "Up")
+                    {
+                        SetControlOfBodyPart("Up");
+                    }
+                }
+                else if (hor < 0f)
+                {
+                    if (CurrentState != "Left")
+                    {
+                        SetControlOfBodyPart("Left");
+                    }
+                }
+                else if (vert < 0f)
+                {
+                    if (CurrentState != "Down")
+                    {
+                        SetControlOfBodyPart("Down");
+                    }
+                }
+                else if (hor > 0f)
+                {
+                    if (CurrentState != "Right")
+                    {
+                        SetControlOfBodyPart("Right");
+                    }
+                }
                 else
-                    UnCatch();
-            }
+                {
+                    SetControlOfBodyPart("");
+                }
+        }
+
+        if (cath)
+        {
+            if (Stamina.HasStamina())
+                RawCatch();
             else
-            {
-                if (stamina >= 0.2)
-                    Catch();
-                else
-                    UnCatch();
-            }
+                RawUnCatch();
         }
         else
-        {
-            UnCatch();
-        }
+            RawUnCatch();
+
+        PoseControl();
 
 
-        if (Input.GetKey("w"))
-        {
-            if (CurrentState != "Up")
-            {
-                SetControlOfBodyPart("Up");
-            }
-        }
-        else if (Input.GetKey("a"))
-        {
-            if (CurrentState != "Front")
-            {
-                SetControlOfBodyPart("Front");
-            }
-        }
-        else if (Input.GetKey("s"))
-        {
-            if (CurrentState != "Down")
-            {
-                SetControlOfBodyPart("Down");
-            }
-        }
-        else if (Input.GetKey("d"))
-        {
-            if (CurrentState != "Back")
-            {
-                SetControlOfBodyPart("Back");
-            }
-        }
-        else
-        {
-            DisabledControlOfBodyPart();
-        }
+        if (!isMenu)
+            Levelmanager.Instance.UpdateStamina(Stamina.GetFillAmount());
     }
-
 
     private void FixedUpdate()
     {
+        if (!CanMove) return;
+
         CheckLowVelocity();
 
         if (_iscatch)
@@ -231,60 +400,85 @@ public class PlayerManager : SimpleSingleton<PlayerManager>
             LeftHand.UnCatch();
             RightHand.UnCatch();
         }
-        if (LeftHand.catched||RightHand.catched)
+        if (LeftHand.catched || RightHand.catched)
         {
-            if(LeftHand.catched && RightHand.catched)
-            { 
-                stamina -=  Time.fixedDeltaTime /hover_time;
-            
+            if (LeftHand.catched && RightHand.catched)
+            {
+                Stamina.DownGrade(2);
             }
             else
             {
-                stamina -= 2*Time.fixedDeltaTime / hover_time;
+                Stamina.DownGrade();
             }
-            if (stamina < 0) stamina = 0f;
         }
         else
-        {
-            stamina += Time.fixedDeltaTime / recovery_time;
-            if (stamina > 1) stamina = 1f;
-        }
+            Stamina.UpGrade();
+    }
+
+    public void SetInfinityStamina(bool state = true)
+    {
+        Stamina.IsInfinityStamina(state);
+    }
+
+    public void SetStickmanControl(bool state)
+    {
+        CanMove = state;
+        //UnCatch();
+    }
+
+    public void SetDefaultPosition()
+    {
+        transform.position = defaultPosition;
     }
 
     // устанавливаем состояние персонажа
     public void SetControlOfBodyPart(string statename)
     {
-        for (int i = 0; i < PlayerState.Count; i++)
-        {
-            if (PlayerState[i].StateName == statename)
-            {
-                CurrentState = statename;
-                for (int k = 0; k < PlayerState[i].Part.Count; k++)
-                {
-                    if (!Body[k].active) continue;
+        CurrentState = statename;
+    }
 
-                    if (UseDefaultParameters)
+    private void PoseControl()
+    {
+        if (CurrentState != "")
+        {
+            isPose = true;
+            for (int i = 0; i < PlayerState.Count; i++)
+            {
+                if (PlayerState[i].StateName == CurrentState)
+                {
+                    for (int k = 0; k < PlayerState[i].Part.Count; k++)
                     {
-                        Body[k].StickmanAngle.ConAngle = PlayerState[i].Part[k].angle;
-                        Body[k].StickmanAngle.ConSpeed = DefaultSpeed;
-                        Body[k].StickmanAngle.ConForce = DefaultForce;
-                        Body[k].StickmanAngle.IsControl = true;
+                        if (!Body[k].active) continue;
+
+                        if (UseDefaultParameters)
+                        {
+                            Body[k].StickmanAngle.ConAngle = PlayerState[i].Part[k].angle;
+                            Body[k].StickmanAngle.ConSpeed = DefaultSpeed;
+                            Body[k].StickmanAngle.ConForce = DefaultForce;
+                            Body[k].StickmanAngle.IsControl = true;
+                        }
+                        else
+                        {
+                            Body[k].StickmanAngle.ConAngle = PlayerState[i].Part[k].angle;
+                            Body[k].StickmanAngle.ConSpeed = PlayerState[i].Part[k].speed;
+                            Body[k].StickmanAngle.ConForce = PlayerState[i].Part[k].force;
+                            Body[k].StickmanAngle.IsControl = true;
+                        }
                     }
-                    else
-                    {
-                        Body[k].StickmanAngle.ConAngle = PlayerState[i].Part[k].angle;
-                        Body[k].StickmanAngle.ConSpeed = PlayerState[i].Part[k].speed;
-                        Body[k].StickmanAngle.ConForce = PlayerState[i].Part[k].force;
-                        Body[k].StickmanAngle.IsControl = true;
-                    }
+                    break;
                 }
             }
-        }   
+        }
+        else if (isPose)
+        {
+            DisabledControlOfBodyPart();
+            isPose = false;
+        }
     }
 
     public void DisabledControlOfBodyPart()
     {
-        CurrentState = null;
+        //CurrentState = null;
         for (int k = 0; k < PlayerState[1].Part.Count; k++)
         {
             if (!Body[k].active) continue;
@@ -296,40 +490,59 @@ public class PlayerManager : SimpleSingleton<PlayerManager>
 
         }
     }
-
     // при запуске игры кидаем персонажа
-    //мой кодик Нина
-    public void SetImpulse(float Force, Vector3 direction)
+    public void StartGame(float Force, Vector3 direction)
     {
-        Body[(int)BodyPartsName.Head].StickmanBody.StopGetDamage(0.1f);
-        Body[(int)BodyPartsName.Head].Rigidbody.AddForce(direction * Force, ForceMode2D.Impulse);
+
+        if (!isMenu)
+            Levelmanager.Instance.StartGame(false);
+
+        for (int j = 0; j < Body.Count; j++)
+        {
+            Body[j].Rigidbody.isKinematic = false;
+            Body[j].StickmanBody.StopGetDamage(0.1f);
+            Body[j].Rigidbody.AddForce(direction * Force, ForceMode2D.Impulse);
+        }
+
+
+        CanMove = true;
+
+        if (CatchOnStart)
+        {
+            Catch();
+            if (catchObjectOnStart)
+            {
+                LeftHand.Catch(catchObjectOnStart);
+                RightHand.Catch(catchObjectOnStart);
+            }
+        }
     }
-    //мой код
 
     // проверяем скорость персонажа, чтобы закончить игру
     public void CheckLowVelocity()
     {
         if (InfinityGame) return;
 
-        if (ModuleVector(Head.velocity) < 1f)
+        if (Head.velocity.magnitude < 1f)
         {
             if (LowVelocityActive)
             {
                 LowVelocityActive = false;
-                _countDownTimer.ActiveCounter = true;
-                _countDownTimer.timeLeft = 6f;
+                CountDownTimer.ActiveCounter = true;
+                CountDownTimer.timeLeft = 6f;
 
             }
         }
         else
         {
             LowVelocityActive = true;
-            _countDownTimer.ActiveCounter = false;
+            CountDownTimer.ActiveCounter = false;
         }
     }
 
+    #region debug
     // функция для заполнения списков частями тел
-    public void FindBodyesParts()
+    /*public void FindBodyesParts()
     {
         // обнуляем список перед его перезаполнением
         Body = new List<BodyParts>();
@@ -348,7 +561,7 @@ public class PlayerManager : SimpleSingleton<PlayerManager>
             });
             // проверяем у новосозданного обьекта в списке, включен ли у него данные компоненты
             if (!Body[i].StickmanBody.gameObject.GetComponent<HingeJoint2D>().enabled ||
-                 Body[i].StickmanAngle == null  )
+                 Body[i].StickmanAngle == null)
             {
                 //если нет, то делаем неактивным этот элемент в списке
                 Body[i].active = false;
@@ -374,26 +587,102 @@ public class PlayerManager : SimpleSingleton<PlayerManager>
                         angle = 0, // по стандарту выставляем угол 0
                         force = DefaultForce, // выставляем силу по стандарту
                         speed = DefaultSpeed // выставляем скорость по стандарту
-                    }) ;
+                    });
                 }
             }
         }
-        
+
+    }*/
+
+    /*[Button("SetStaticState")]
+    public bool sd;
+    public Transform sdf;
+    public string sdffssss;*/
+    #endregion
+
+    #region Jumper
+    public void SetToJumper(float time)
+    {
+        foreach(BodyParts part in Body)
+        {
+            part.Rigidbody.sharedMaterial = JumperMaterial;
+        }
+
+        if (SetToNormalStateCor != null)
+            StopCoroutine(SetToNormalStateCor);
+
+        SetToNormalStateCor = StartCoroutine(SetToNormalState(time));
     }
 
-    public void Catch()
+    IEnumerator SetToNormalState(float time)
+    {
+        yield return new WaitForSeconds(time);
+
+        foreach (BodyParts part in Body)
+        {
+            part.Rigidbody.sharedMaterial = part.physicsMaterial;
+        }
+    }
+    #endregion
+
+    public void SetStaticState()
+    {
+        SetStaticState(defaultPosition, DefaultState);
+    }
+
+    public void SetStaticState(Transform transform, string poseName)
+    {
+        SetStaticState(transform.position, poseName);
+    }
+
+    public void SetStaticState(Vector3 position, string poseName)
+    {
+        //gameObject.transform.parent = transform;
+#if UNITY_EDITOR
+        Undo.RecordObject(gameObject.transform, "State changed");
+#endif
+        gameObject.transform.position = position;
+
+        for (int i = 0; i < PlayerStaticStates.Count; i++)
+        {
+            if (poseName == PlayerStaticStates[i].PoseName)
+            {
+                for (int j = 0; j < Body.Count; j++)
+                {
+#if UNITY_EDITOR
+                    Undo.RecordObject(Body[j].Rigidbody.transform, "State changed");
+#endif
+                    Body[j].Rigidbody.transform.localPosition =  PlayerStaticStates[i].BodyParts[j].Position;
+                    Body[j].Rigidbody.transform.localRotation =  PlayerStaticStates[i].BodyParts[j].Rotation;
+                    Body[j].Rigidbody.isKinematic = true;
+                }
+
+#if UNITY_EDITOR
+                Undo.RecordObject(gameObject.transform, "State changed");
+#endif
+                gameObject.transform.localRotation = Quaternion.Euler(0, 0, 0);
+
+                CanMove = false;
+                return;
+            }
+        }
+    }
+
+    public void RawCatch()
     {
         _iscatch = true;
     }
-    public void UnCatch()
+    public void RawUnCatch()
     {
         _iscatch = false;
     }
 
-
-
-    public float ModuleVector(Vector2 Vector)
+    public void Catch()
     {
-        return math.sqrt(Vector.x * Vector.x + Vector.y * Vector.y);
+        cath = true;
+    }
+    public void UnCatch()
+    {
+        cath = false;
     }
 }

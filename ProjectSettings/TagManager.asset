@@ -3,7 +3,11 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: [Prop]
+  tags:
+  - Square
+  - Transport
+  - Triangle
+  - Prop
   layers:
   - Default
   - TransparentFX
@@ -17,10 +21,10 @@ TagManager:
   - StickmanForward
   - World
   - Things
-  - 
-  - 
-  - 
-  - 
+  - Transport
+  - Transport_Outside
+  - Transport_Inside
+  - Transport_NoStickmanCol
   - 
   - 
   - 
@@ -39,20 +43,23 @@ TagManager:
   - 
   m_SortingLayers:
   - name: Background
-    uniqueID: 2852441357
+    uniqueID: 2504941353
     locked: 0
   - name: Default
     uniqueID: 0
     locked: 0
   - name: StickmanForward
-    uniqueID: 778572821
+    uniqueID: 1455176399
+    locked: 0
+  - name: BetStick
+    uniqueID: 92391963
     locked: 0
   - name: StickmanBehind
-    uniqueID: 2496903261
+    uniqueID: 1692733345
     locked: 0
   - name: Things
-    uniqueID: 2979551161
+    uniqueID: 1227588757
     locked: 0
   - name: UI
-    uniqueID: 462714107
+    uniqueID: 3476487591
     locked: 0

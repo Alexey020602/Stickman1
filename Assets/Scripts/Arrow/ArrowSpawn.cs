@@ -1,57 +1,62 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
 public class ArrowSpawn : MonoBehaviour
 {
+    [System.Serializable]
+    public class AngleBordersCL
+    {
+        public float LowerAngle = 180f;
+        public float UpperAngle = 180f;
+    }
     [Header("Arrow preferences")]
     public StartArrow ArrowPrefab;
     public Transform ArrowAppearence;
-    [HideInInspector]
-    public StartArrow arrow;
     public float MinForseToPush;
     public float ForseToPush;
+    public bool InfinityAngles = true;
+    public AngleBordersCL AngleBorders;
+    [ReadOnly]
+    public bool isChoosing = false;
 
-    private bool CanChooseDirection = true;
+    private StartArrow arrow;
+    private bool canChooseDirection = true;
     private Camera _mainCamera;
     private Vector3 _arrowDirectionToPush;
     private GameManager _gamemanager;
+    public float angle { get; protected set; }
 
-    private void Start()
+    public virtual void Start()
     {
-        //Arrow = Instantiate(ArrowPrefab, ArrowAppearence);
         _mainCamera = Camera.main;
         _gamemanager = GameManager.Instance;
     }
-
-    private void Update()
+    public void Update()
     {
-        if (CanChooseDirection && arrow != null)
-        {
+        if (canChooseDirection && arrow != null)
             TurnArrow();
-        }
     }
 
     void OnMouseDown()
     {
-        //Debug.Log("MouseDown");
-        if (CanChooseDirection)
+        if (canChooseDirection)
         {
+            isChoosing = true;
             arrow = Instantiate(ArrowPrefab, ArrowAppearence);
         }
-
     }
-
-    private void OnMouseUp()
+    void OnMouseUp()
     {
-        //Debug.Log("MouseUp");
         if (arrow != null)
         {
-            CanChooseDirection = false;
-            _gamemanager.StartGame((1 - arrow._sprite.color.b) * ForseToPush + MinForseToPush, _arrowDirectionToPush);
+            isChoosing = false;
+            canChooseDirection = false;
+            PlayerManager.Instance.StartGame((1 - arrow._sprite.color.b) * ForseToPush + MinForseToPush, -_arrowDirectionToPush);
             Destroy(arrow.gameObject);
         }
     }
+
+
     public void TurnArrow()
     {
         Vector3 _mousePosition = Input.mousePosition;
@@ -61,10 +66,18 @@ public class ArrowSpawn : MonoBehaviour
 
         _arrowDirectionToPush = _direction - arrow.transform.position;
         _arrowDirectionToPush = _arrowDirectionToPush.normalized;
-        float Angle = _arrowDirectionToPush.y > 0 ? Mathf.Acos(_arrowDirectionToPush.x) * Mathf.Rad2Deg : (-1f) * Mathf.Acos(_arrowDirectionToPush.x) * Mathf.Rad2Deg;
+        angle = _arrowDirectionToPush.y > 0 ? Mathf.Acos(_arrowDirectionToPush.x) * Mathf.Rad2Deg : (-1f) * Mathf.Acos(_arrowDirectionToPush.x) * Mathf.Rad2Deg;
 
-        arrow.transform.rotation = Quaternion.AngleAxis(Angle, Vector3.forward);
-        // Arrow.transform.rotation = Quaternion.Euler(_arrowDirectionToPush);
+        if (!InfinityAngles)
+        {
+            if(angle < AngleBorders.LowerAngle)
+                angle = AngleBorders.LowerAngle;
+            else if(angle > AngleBorders.UpperAngle)
+                angle = AngleBorders.UpperAngle;
+        }
+        arrow.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
     }
+
+    public void SetCanChooseDirection(bool state) => canChooseDirection = state;
 
 }
